@@ -69,7 +69,7 @@ library(
 
 // Define the remotes and the working and deploy branches
 def remote = 'origin'
-def workingBranch = 'master'
+def workingBranch = 'main'
 def releaseBranch = 'stable'
 
 // Initialize configuration
