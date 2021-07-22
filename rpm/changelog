@@ -1,3 +1,6 @@
+* Thu Jul 22 2021 Benoit Donneaux <benoit.donneaux@digital-me.nl> - 1.13-1
+- update to version 1.13
+- see https://github.com/rhuss/jmx4perl/releases/tag/v1.13
 * Thu Jul 22 2021 Benoit Donneaux <benoit.donneaux@digital-me.nl> - 1.12-2
 - re-use previous spec with rpmMake
 - see https://github.com/digital-me/pkgMake-jmx4perl/releases/tag/v1.12-2
