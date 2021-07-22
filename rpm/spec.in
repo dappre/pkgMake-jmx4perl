@@ -1,0 +1,97 @@
+%define rpm_name     #RPM_NAME#
+%define rpm_version  #RPM_VERSION#
+%define rpm_release  #RPM_RELEASE#
+%define rpm_packager #RPM_PACKAGER#
+
+%define real_name %{rpm_name}
+%define perl_vendorlib %(eval "`perl -V:installvendorlib`"; echo $installvendorlib)
+%define perl_vendorarch %(eval "`perl -V:installvendorarch`"; echo $installvendorarch)
+%define perl_archlib %(eval "`perl -V:archlib`"; echo $archlib)
+%define perl_privlib %(eval "`perl -V:privlib`"; echo $privlib)
+%define maketest 0
+
+Name:           %{real_name}
+Summary:   	JSON-HTTP based access to a remote JMX agent
+Version:   	%{rpm_version}
+Release:   	%{rpm_release}%{?dist}
+Url:       	http://www.cpan.org
+Group:          Development/Libraries/Perl
+Source:    	https://github.com/rhuss/#RPM_NAME#/archive/refs/tags/v#RPM_VERSION#.tar.gz
+Source1:        filter-requires-%{real_name}.sh
+License:   	GPL
+AutoReqProv:    on
+Buildarch: 	noarch
+Buildroot: 	%{_tmppath}/%{name}-%{version}-%(id -u -n)
+
+%define _use_internal_dependency_generator 0
+%define __find_requires %{SOURCE1}
+
+BuildRequires:  perl(ExtUtils::MakeMaker) perl(Module::Build)
+%if 0%{?fedora_version}
+BuildRequires:  perl-devel
+%endif
+
+Requires:	perl(Module::Find) perl(JSON)
+
+
+%description
+Jmx4Perl provides an alternate way for accessing Java JEE Server management
+interfaces which are based on JMX (Java Management Extensions). It is an
+agent based approach, where a small Java Webapplication deployed on the
+application server provides an HTTP/JSON based access to JMX MBeans
+registered within the application server.
+
+
+%prep
+%setup -q -n %{real_name}-%{version} 
+chmod -R u+w %{_builddir}/%{real_name}-%{version}
+
+#Remove bundled Module-Build
+rm -rf inc/Module-Build 2>/dev/null
+
+%{__chmod} +x %{SOURCE1}
+
+
+%clean
+[ "%{buildroot}" != "/" ] && rm -rf %{buildroot}
+
+
+%build
+export PERL_MM_USE_DEFAULT=1
+grep -rsl '^#!.*perl' . |
+grep -v '.bak$' |xargs --no-run-if-empty \
+%__perl -MExtUtils::MakeMaker -e 'MY->fixin(@ARGV)'
+%{__perl} Build.PL destdir=%{buildroot} installdirs=vendor
+%{__perl} Build
+
+
+%check
+%if %maketest
+%{__perl} Build test
+%endif
+
+
+%install
+%{__perl} Build install
+
+find %{buildroot} -name "perllocal.pod" -o -name ".packlist" -o -name "*.bs" |xargs -i rm -f {}
+find %{buildroot} -name "site_perl" |xargs -i rm -rfv {}
+%{__rm} -rfv %{buildroot}//var/adm
+%{__rm} -rfv %{buildroot}%{perl_vendorarch}/auto
+
+install -d -m755 %{buildroot}/%{_sysconfdir}/jmx4perl
+%{__cp} -a config/* %{buildroot}/%{_sysconfdir}/jmx4perl
+
+
+%files
+%defattr(-, root, root)
+%doc CHANGES examples it LICENSE META.json README
+%doc %{_mandir}/man?/*
+%{_bindir}/*
+%dir %{perl_vendorlib}/*
+%{perl_vendorlib}/*
+%dir %{_sysconfdir}/jmx4perl
+%config %{_sysconfdir}/jmx4perl/*
+
+%changelog
+%include %{_specdir}/changelog
