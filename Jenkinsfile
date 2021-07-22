@@ -69,7 +69,7 @@ library(
 
 // Define the remotes and the working and deploy branches
 def remote = 'origin'
-def workingBranch = 'master'
+def workingBranch = 'main'
 def releaseBranch = 'stable'
 
 // Initialize configuration
@@ -99,7 +99,7 @@ lazyStage {
 	onlyif = ( lazyConfig['branch'] != releaseBranch ) // Skip when releasing
 	tasks = [
 		pre: {
-			def version = gitLastTag()
+			def version = gitLastTag('*.*')
 			if (env.VERSION.toString() != 'true' && env.VERSION.toString() != 'false') {
 				version = env.VERSION.toString()
 			}
@@ -111,7 +111,7 @@ lazyStage {
 			currentBuild.displayName = "#${env.BUILD_NUMBER} ${version}-${release}"
 		},
 		run: {
-			def version = gitLastTag()
+			def version = gitLastTag('*.*')
 			if (env.VERSION.toString() != 'true' && env.VERSION.toString() != 'false') {
 				version = env.VERSION.toString()
 			}
@@ -130,7 +130,7 @@ lazyStage {
 	onlyif = ( lazyConfig['branch'] != releaseBranch ) // Skip when releasing
 	tasks = [
 		run: {
-			def version = gitLastTag()
+			def version = gitLastTag('*.*')
 			if (env.VERSION.toString() != 'true' && env.VERSION.toString() != 'false') {
 				version = env.VERSION.toString()
 			}
@@ -168,7 +168,7 @@ lazyStage {
 	onlyif = ( lazyConfig['branch'] == releaseBranch )
 	tasks = [
 		run: {
-			def version = gitLastTag()
+			def version = gitLastTag('*.*')
 			if (env.VERSION.toString() != 'true' && env.VERSION.toString() != 'false') {
 				version = env.VERSION.toString()
 			}
@@ -214,7 +214,7 @@ lazyStage {
 		run: {
 			gitAuth(env.GIT_CRED, {
 				// Define next version based on optional input
-				def currentVersion = gitLastTag()
+				def currentVersion = gitLastTag('*.*')
 				def nextVersion = null
 				if (env.lazyInput && env.lazyInput != currentVersion) {
 					if (env.lazyInput ==~ /[a-z]+/) {
@@ -231,7 +231,7 @@ lazyStage {
 				gitTag("${nextVersion}")
 				gitPush(remote, "${releaseBranch} ${nextVersion}")
 				// Update the displayed version for this build
-				currentVersion = gitLastTag()
+				currentVersion = gitLastTag('*.*')
 				currentBuild.displayName = "#${env.BUILD_NUMBER} ${currentVersion}"
 			})
 		},
